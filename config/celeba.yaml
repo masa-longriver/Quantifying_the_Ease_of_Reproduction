@@ -1,0 +1,22 @@
+batch_size: 64
+pretrained_model_path: ""
+
+train:
+    epochs: 1500
+    log_interval: 10
+    eval_interval: 100
+    sampling_interval: 100
+    saving_interval: 500
+
+data:
+  height: 64
+  width: 64
+  channel: 3
+  horizontal_flip_rate: 0.5
+  train_ratio: 0.8
+  eval_ratio: 0.2
+  center_crop: 160
+
+sampling:
+  n_img: 50
+  save_n_row: 10

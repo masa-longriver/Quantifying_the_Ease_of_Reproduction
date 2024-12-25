@@ -1,0 +1,19 @@
+batch_size: 256
+pretrained_model_path: "20241211_150650/models/epoch_000001.pth"
+
+train:
+    epochs: 1500
+    log_interval: 10
+    eval_interval: 100
+    sampling_interval: 100
+    saving_interval: 500
+
+data:
+  height: 32
+  width: 32
+  channel: 3
+  horizontal_flip_rate: 0.5
+
+sampling:
+  n_img: 50
+  save_n_row: 10
