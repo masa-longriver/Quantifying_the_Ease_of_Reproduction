@@ -12,6 +12,7 @@ sys.path.append(project_root)
 
 from src.models.euler_maruyama import EulerMaruyama  # noqa: E402
 from src.models.sde import VPSDE  # noqa: E402
+from src.utils import ImageHandler  # noqa: E402
 
 
 class Sampler:
@@ -25,6 +26,7 @@ class Sampler:
         self.sde = VPSDE(config)
         self.config = config
         self.sampling_method = EulerMaruyama(self.sde, config)
+        self.image_handler = ImageHandler()
 
     def generate_tensor(
         self, model: nn.Module, shape: tuple, ode: bool = True
@@ -70,25 +72,6 @@ class Sampler:
             torch.Tensor: The generated image.
         """
         tensor = self.generate_tensor(model, shape, ode)
-        image = self.tensor_to_image(tensor).to('cpu')
-
-        return image
-
-    def tensor_to_image(self, tensor: torch.Tensor) -> torch.Tensor:
-        """
-        Convert a tensor to an image.
-
-        Args:
-            tensor (torch.Tensor): The tensor to convert.
-
-        Returns:
-            torch.Tensor: The converted image.
-        """
-        reverse_transform = transforms.Compose([
-            transforms.Lambda(lambda x: (x + 1.) / 2)
-        ])
-        transformed_tensor = reverse_transform(tensor)
-        image = torch.clamp(transformed_tensor * 255, min=0, max=255)
-        image = image.to(dtype=torch.uint8)
+        image = self.image_handler.tensor_to_image(tensor).to('cpu')
 
         return image

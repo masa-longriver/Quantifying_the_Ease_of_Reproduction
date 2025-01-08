@@ -2,7 +2,10 @@ import logging
 import os
 
 import matplotlib.pyplot as plt
+import pandas as pd
 import torch
+import torch.nn as nn
+from torchvision import transforms
 import torchvision.utils as vutils
 
 
@@ -36,22 +39,15 @@ class ResultWriter:
         )
         os.makedirs(self.result_dir, exist_ok=True)
         logger.info(f"Result directory is created: {self.result_dir}")
-
-    def _create_sample_dir(self):
+    
+    def _create_internal_dir(self, dir_name: str):
         """
-        Create a directory for storing sample images if it does not exist.
+        Create a directory for storing internal results if it does not exist.
         """
-        if not hasattr(self, "sample_dir"):
-            self.sample_dir = os.path.join(self.result_dir, "samples")
-            os.makedirs(self.sample_dir, exist_ok=True)
-
-    def _create_model_dir(self):
-        """
-        Create a directory for storing models if it does not exist.
-        """
-        if not hasattr(self, "model_dir"):
-            self.model_dir = os.path.join(self.result_dir, "models")
-            os.makedirs(self.model_dir, exist_ok=True)
+        dir_path = os.path.join(self.result_dir, dir_name)
+        if not hasattr(self, dir_name):
+            os.makedirs(dir_path, exist_ok=True)
+            setattr(self, dir_name + "_dir", dir_path)
 
     def save_sampling_images(
         self,
@@ -69,7 +65,7 @@ class ResultWriter:
             figsize (tuple): Size of the figure for the image grid.
             nrow (int): Number of images in each row of the grid.
         """
-        self._create_sample_dir()
+        self._create_internal_dir("samples")
         grid = vutils.make_grid(generated_image, nrow=nrow, padding=2)
         plt.figure(figsize=figsize)
         plt.axis('off')
@@ -78,7 +74,7 @@ class ResultWriter:
         plt.savefig(save_path, bbox_inches='tight')
         plt.close()
 
-    def save_trained_model(self, model, file_name):
+    def save_trained_model(self, model: nn.Module, file_name: str):
         """
         Save the trained model to the model directory.
 
@@ -86,6 +82,47 @@ class ResultWriter:
             model: The model to be saved.
             file_name (str): Name of the file to save the model.
         """
-        self._create_model_dir()
+        self._create_internal_dir("models")
         save_path = os.path.join(self.model_dir, file_name)
         torch.save(model, save_path)
+
+    def save_data_image(self, image: torch.Tensor, file_name: str):
+        """
+        Save the image tensor as a PIL image.
+
+        Args:
+            image (torch.Tensor): The image tensor to be saved.
+            file_name (str): Name of the file to save the image.
+        """
+        self._create_internal_dir("data")
+        save_path = os.path.join(self.data_dir, file_name)
+        pil_image = transforms.ToPILImage()(image)
+        pil_image.save(save_path)
+    
+    def save_log_volume_growth_rate(
+        self, log_volume_growth_rate_df: pd.DataFrame, file_name: str
+    ):
+        """
+        Save the log volume growth rate as a CSV file.
+
+        Args:
+            log_volume_growth_rate_df (pd.DataFrame):
+                The log volume growth rate data.
+            file_name (str):
+                Name of the file to save the log volume growth rate.
+        """
+        self._create_internal_dir("log_volume_growth_rate")
+        save_path = os.path.join(self.log_volume_growth_rate_dir, file_name)
+        log_volume_growth_rate_df.to_csv(save_path)
+
+    def save_graph(self, log_volume_growth_rate: torch.Tensor, file_name: str):
+        """
+        Save the log volume growth rate as a graph.
+        """
+        self._create_internal_dir("graph")
+        save_path = os.path.join(self.graph_dir, file_name)
+        plt.plot(log_volume_growth_rate)
+        plt.xlabel("Image Index")
+        plt.ylabel("Log Volume Growth Rate")
+        plt.savefig(save_path)
+        plt.close()

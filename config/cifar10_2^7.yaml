@@ -17,3 +17,10 @@ data:
 sampling:
   n_img: 50
   save_n_row: 10
+
+evaluate:
+  n_img: 128
+  timesteps: 1000
+  n_surroundings: 100
+  sigma: 0.05
+  n_blocks: 1

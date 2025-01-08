@@ -25,7 +25,14 @@ logger = logging.getLogger()
 
 
 class Trainer:
-    def __init__(self, config: dict, result_dir_name: str):
+    def __init__(self, config: dict, result_dir_name: str) -> None:
+        """
+        Initialize the Trainer class with configuration and result directory.
+
+        Args:
+            config (dict): Configuration dictionary for training parameters.
+            result_dir_name (str): Directory name for saving results.
+        """
         self.config = config
         torch.backends.cudnn.benchmark = True
 
@@ -44,7 +51,10 @@ class Trainer:
         self.sampler = Sampler(config)
         self.result_writer = ResultWriter(result_dir_name, config)
 
-    def train(self):
+    def train(self) -> None:
+        """
+        Train the model for a specified number of epochs, logging progress.
+        """
         logger.info("Start training")
         for epoch in range(self.config['train']['epochs']):
             loss = self._run_epoch(epoch)
