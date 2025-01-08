@@ -12,14 +12,14 @@ sys.path.append(project_root)
 from src.models.sde import VPSDE  # noqa: E402
 
 
-def score_fn(
+def calculate_score(
     x: torch.Tensor,
     t: torch.Tensor,
     model: nn.Module,
     sde: VPSDE,
 ) -> torch.Tensor:
     """
-    Compute the score function for the given input, time, model, and SDE.
+    Calculate the score for the given input, time, model, and SDE.
 
     Args:
         x (torch.Tensor): The input tensor.
@@ -28,7 +28,7 @@ def score_fn(
         sde (VPSDE): The SDE object to compute the marginal probability.
 
     Returns:
-        torch.Tensor: The computed score function.
+        torch.Tensor: The computed score.
     """
     labels = t * 999
     score = model(x, labels)

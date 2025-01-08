@@ -8,13 +8,15 @@ project_root = os.path.dirname(
 )
 sys.path.append(project_root)
 
-from src.models import Generator  # noqa: E402
-from src.utils import load_config, setup_logger, load_model  # noqa: E402
+from src.models import Sampler  # noqa: E402
+from src.utils import (  # noqa: E402
+    load_config, setup_logger, load_model, ResultWriter
+)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", type=str, required=True)
 parser.add_argument(
-    "--result_dir", type=str,
+    "--result_dir_name", type=str,
     default=dt.datetime.now().strftime("%Y%m%d_%H%M%S"),
 )
 
@@ -28,9 +30,16 @@ def main(args: argparse.Namespace) -> None:
 
     config = load_config(args.dataset)
     model = load_model(config)
+    result_writer = ResultWriter(args.result_dir_name, config)
 
-    generator = Generator(config, model, args.result_dir)
-    generator.generate()
+    sampler = Sampler(config)
+    shape = (
+        config['sampling']['n_img'], config['data']['channel'],
+        config['data']['height'], config['data']['width']
+    )
+    generated_image = sampler.generate_image(model, shape, ode=False)
+    result_writer.save_image(generated_image)
+    logger.info("Sampling is completed.")
 
 
 if __name__ == "__main__":

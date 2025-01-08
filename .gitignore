@@ -1,4 +1,4 @@
-data/
-logs/
-results/
+/data/
+/logs/
+/results/
 **/__pycache__/

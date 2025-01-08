@@ -1,20 +1,19 @@
 from .ema import EMA
-from .generator import Generator
-from .loss import loss_fn
-from .sampling import sampling, EulerMaruyama
-from .score import score_fn
+from .euler_maruyama import EulerMaruyama
+from .loss import calculate_loss
+from .sampler import Sampler
+from .score import calculate_score
 from .sde import VPSDE
 from .trainer import Trainer
 from .unet import UNet
 
 __all__ = [
+    "calculate_loss",
+    "calculate_score",
     "EMA",
-    "Generator",
-    "loss_fn",
-    "sampling",
     "EulerMaruyama",
-    "score_fn",
-    "VPSDE",
+    "Sampler",
     "Trainer",
     "UNet",
+    "VPSDE",
 ]

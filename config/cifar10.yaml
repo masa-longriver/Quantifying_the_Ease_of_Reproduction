@@ -4,8 +4,8 @@ pretrained_model_path: "20241211_150650/models/epoch_000001.pth"
 train:
     epochs: 1500
     log_interval: 10
-    eval_interval: 100
-    sampling_interval: 100
+    eval_interval: 50
+    sampling_interval: 50
     saving_interval: 500
 
 data:

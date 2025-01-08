@@ -9,18 +9,18 @@ project_root = os.path.dirname(
 )
 sys.path.append(project_root)
 
-from src.models.score import score_fn  # noqa: E402
+from src.models.score import calculate_score  # noqa: E402
 from src.models.sde import VPSDE  # noqa: E402
 
 
-def loss_fn(
+def calculate_loss(
     x: torch.Tensor,
     model: nn.Module,
     sde: VPSDE,
     config: dict
 ) -> torch.Tensor:
     """
-    Compute the loss function for the given input, model, SDE, and config.
+    Calculate the loss for the given input, model, SDE, and config.
 
     Args:
         x (torch.Tensor): The input tensor.
@@ -39,7 +39,7 @@ def loss_fn(
     z = torch.randn_like(x)
     mean, std = sde.marginal_prob(x, t)
     perturbed_x = mean + std[:, None, None, None] * z
-    score = score_fn(perturbed_x, t, model, sde)
+    score = calculate_score(perturbed_x, t, model, sde)
 
     losses = torch.square(score * std[:, None, None, None] + z)
     losses = torch.mean(losses.reshape(losses.shape[0], -1), dim=-1)

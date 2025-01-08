@@ -13,25 +13,26 @@ project_root = os.path.dirname(
 )
 sys.path.append(project_root)
 
-from src.data import load_dataloader  # noqa: E402
+from src.data import DatasetLoader  # noqa: E402
 from src.models.ema import EMA  # noqa: E402
-from src.models.loss import loss_fn  # noqa: E402
-from src.models.sampling import sampling  # noqa: E402
+from src.models.loss import calculate_loss  # noqa: E402
+from src.models.sampler import Sampler  # noqa: E402
 from src.models.sde import VPSDE  # noqa: E402
 from src.models.unet import UNet  # noqa: E402
-from src.utils import save_sampling_images  # noqa: E402
+from src.utils import ResultWriter  # noqa: E402
 
 logger = logging.getLogger()
 
 
 class Trainer:
-    def __init__(self, config: dict, result_dir: str):
+    def __init__(self, config: dict, result_dir_name: str):
         self.config = config
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.config["device"] = device
         torch.backends.cudnn.benchmark = True
 
-        self.train_dl, self.eval_dl = load_dataloader(config)
+        dataset_loader = DatasetLoader(config)
+        self.train_dl, self.eval_dl = dataset_loader.create_dataloader()
         self.sde = VPSDE(config)
         self.model = nn.DataParallel(UNet(config).to(device))
         self.ema = EMA(config, self.model)
@@ -42,12 +43,8 @@ class Trainer:
             eps=config['optim']['eps'],
             weight_decay=config['optim']['weight_decay']
         )
-
-        self.result_dir = os.path.join(
-            project_root, "results", config["dataset"], result_dir
-        )
-        os.makedirs(self.result_dir, exist_ok=True)
-        logger.info(f"Result directory is created: {self.result_dir}")
+        self.sampler = Sampler(config)
+        self.result_writer = ResultWriter(result_dir_name, config)
 
     def train(self):
         logger.info("Start training")
@@ -85,7 +82,7 @@ class Trainer:
         for x, _ in self.train_dl:
             x = x.to(self.config['device'])
             self.optimizer.zero_grad()
-            loss = loss_fn(x, self.model, self.sde, self.config)
+            loss = calculate_loss(x, self.model, self.sde, self.config)
             loss.backward()
 
             for g in self.optimizer.param_groups:
@@ -102,7 +99,7 @@ class Trainer:
 
             running_loss += loss.item() * x.size(0)
 
-        return running_loss / len(self.train_dl.dataset)
+        return running_loss / len(self.train_dl)
 
     def _evalate(self):
         """
@@ -118,11 +115,11 @@ class Trainer:
         with torch.no_grad():
             for x, _ in self.eval_dl:
                 x = x.to(self.config['device'])
-                loss = loss_fn(x, self.model, self.sde, self.config)
+                loss = calculate_loss(x, self.model, self.sde, self.config)
                 running_loss += loss.item() * x.size(0)
             self.ema.restore()
 
-        return running_loss / len(self.eval_dl.dataset)
+        return running_loss / len(self.eval_dl)
 
     def _sampling(self, epoch: int) -> None:
         """
@@ -136,15 +133,16 @@ class Trainer:
             self.config['sampling']['n_img'], self.config['data']['channel'],
             self.config['data']['height'], self.config['data']['width']
         )
-        x = sampling(self.model, self.sde, shape, self.config, method='sde')
-
-        save_dir = os.path.join(self.result_dir, "sampled_images")
-        os.makedirs(save_dir, exist_ok=True)
-        save_path = os.path.join(save_dir, f"epoch_{epoch:06d}.png")
-        save_sampling_images(
-            x, save_path, n_row=self.config['sampling']['save_n_row']
+        generated_image = self.sampler.generate_image(
+            self.model, shape, ode=False
         )
-        logger.info("Images are sampled.")
+
+        file_name = f"epoch_{epoch + 1}.png"
+        self.result_writer.save_sampling_images(
+            generated_image, file_name,
+            nrow=self.config['sampling']['save_n_row']
+        )
+        logger.info("Sampling is conducted.")
 
     def _save_model(self, epoch: int) -> None:
         """
@@ -153,8 +151,6 @@ class Trainer:
         Args:
             epoch (int): The current epoch number.
         """
-        save_dir = os.path.join(self.result_dir, "models")
-        os.makedirs(save_dir, exist_ok=True)
-        save_path = os.path.join(save_dir, f"epoch_{epoch:06d}.pth")
-        torch.save(self.model, save_path)
+        file_name = f"epoch_{epoch + 1}.pth"
+        self.result_writer.save_trained_model(self.model, file_name)
         logger.info("Model is saved.")
