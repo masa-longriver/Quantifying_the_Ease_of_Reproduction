@@ -3,6 +3,8 @@ import datetime as dt
 import os
 import sys
 
+import torch
+
 project_root = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
@@ -27,6 +29,8 @@ def main(args: argparse.Namespace):
     logger.info(f"Result directory name: {args.result_dir_name}")
 
     config = load_config(args.dataset)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    config["device"] = device
 
     trainer = Trainer(config, args.result_dir_name)
     trainer.train()

@@ -27,14 +27,12 @@ logger = logging.getLogger()
 class Trainer:
     def __init__(self, config: dict, result_dir_name: str):
         self.config = config
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.config["device"] = device
         torch.backends.cudnn.benchmark = True
 
         dataset_loader = DatasetLoader(config)
         self.train_dl, self.eval_dl = dataset_loader.create_dataloader()
         self.sde = VPSDE(config)
-        self.model = nn.DataParallel(UNet(config).to(device))
+        self.model = nn.DataParallel(UNet(config).to(self.config['device']))
         self.ema = EMA(config, self.model)
         self.optimizer = optim.Adam(
             self.model.parameters(),

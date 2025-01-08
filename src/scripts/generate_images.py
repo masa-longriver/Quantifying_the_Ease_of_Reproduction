@@ -3,6 +3,8 @@ import datetime as dt
 import os
 import sys
 
+import torch
+
 project_root = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
@@ -26,9 +28,12 @@ logger = setup_logger()
 def main(args: argparse.Namespace) -> None:
     logger.info("Start generating images with the trained model")
     logger.info(f"Dataset: {args.dataset}")
-    logger.info(f"Result directory name: {args.result_dir}")
+    logger.info(f"Result directory name: {args.result_dir_name}")
 
     config = load_config(args.dataset)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    config["device"] = device
+
     model = load_model(config)
     result_writer = ResultWriter(args.result_dir_name, config)
 
@@ -38,7 +43,8 @@ def main(args: argparse.Namespace) -> None:
         config['data']['height'], config['data']['width']
     )
     generated_image = sampler.generate_image(model, shape, ode=False)
-    result_writer.save_image(generated_image)
+    file_name = f"sampling_images.png"
+    result_writer.save_sampling_images(generated_image, file_name)
     logger.info("Sampling is completed.")
 
 

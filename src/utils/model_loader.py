@@ -24,5 +24,6 @@ def load_model(config: dict) -> nn.DataParallel:
         config["pretrained_model_path"]
     )
     model = torch.load(model_path)
+    model = nn.DataParallel(model).to(config['device'])
 
     return model

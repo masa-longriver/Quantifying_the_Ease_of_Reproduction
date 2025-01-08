@@ -1,5 +1,5 @@
 batch_size: 256
-pretrained_model_path: "20241211_150650/models/epoch_000001.pth"
+pretrained_model_path: "20241211_150912/models/epoch_001499.pth"
 
 train:
     epochs: 1500
