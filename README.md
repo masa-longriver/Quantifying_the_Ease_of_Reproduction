@@ -4,7 +4,9 @@ This is an official code for the paper "Quantifying the Ease of Reproducing Trai
 
 by Masaya Hasegawa and Koji Yasuda.
 
-This paper is accepted at the 1st Workshop on Preparing Good Data for Generative AI: Challenges and Approaches, which is a workshop of the 39th Annual Conference on Artificial Intelligence (AAAI).
+This paper is accepted at [the 1st Workshop on Preparing Good Data for Generative AI: Challenges and Approaches](https://sites.google.com/servicenow.com/good-data-2025/), 
+
+which is a workshop of the 39th Annual Conference on Artificial Intelligence (AAAI).
 
 ---
 
