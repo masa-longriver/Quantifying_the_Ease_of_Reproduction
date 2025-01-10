@@ -2,6 +2,7 @@ import logging
 import os
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -115,13 +116,20 @@ class ResultWriter:
         save_path = os.path.join(self.log_volume_growth_rate_dir, file_name)
         log_volume_growth_rate_df.to_csv(save_path)
 
-    def save_graph(self, log_volume_growth_rate: torch.Tensor, file_name: str):
+    def save_graph(
+        self,
+        log_volume_growth_rate: torch.Tensor,
+        file_name: str,
+        figsize: tuple = (30, 6)
+    ):
         """
         Save the log volume growth rate as a graph.
         """
         self._create_internal_dir("graph")
         save_path = os.path.join(self.graph_dir, file_name)
-        plt.plot(log_volume_growth_rate)
+        plt.figure(figsize=figsize)
+        x = np.arange(len(log_volume_growth_rate))
+        plt.scatter(x, log_volume_growth_rate)
         plt.xlabel("Image Index")
         plt.ylabel("Log Volume Growth Rate")
         plt.savefig(save_path)
